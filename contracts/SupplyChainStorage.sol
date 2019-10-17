@@ -1,4 +1,4 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.5.2;
 
 import "./SupplyChainStorageOwnable.sol";
 
@@ -62,13 +62,14 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     */
     
     /* Process Related */
-     struct basicDetails {
-        string registrationNo;
-        string farmerName;
-        string farmAddress;
-        string exporterName;
-        string importerName;
-        
+    struct basicDetails {
+        string grower_company_name;
+        string grower_contact_person_name;
+        string groser_company_address;
+        string farmer_name_address;/*Combination of Farmer Name and Farmer Address*/
+        string farmer_registration_no;
+        string exporter_importer_name; /*Combination of Exporter name and Importer name*/
+        uint256 total_weight_lbs;
     }
     
     struct farmInspector {
@@ -135,24 +136,24 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     
     
     /* Get User Role */
-    function getUserRole(address _userAddress) public onlyAuthCaller view returns(string)
+    function getUserRole(address _userAddress) public view returns(string memory)
     {
         return userRole[_userAddress];
     }
     
     /* Get Next Action  */    
-    function getNextAction(address _batchNo) public onlyAuthCaller view returns(string)
+    function getNextAction(address _batchNo) public view returns(string memory)
     {
         return nextAction[_batchNo];
     }
         
     /*set user details*/
     function setUser(address _userAddress,
-                     string _name, 
-                     string _contactNo, 
-                     string _role, 
+                     string memory _name, 
+                     string memory _contactNo, 
+                     string memory _role, 
                      bool _isActive,
-                     string _profileHash) public onlyAuthCaller returns(bool){
+                     string memory _profileHash) public onlyAuthCaller returns(bool){
         
         /*store data into struct*/
         userDetail.name = _name;
@@ -168,11 +169,11 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     }  
     
     /*get user details*/
-    function getUser(address _userAddress) public onlyAuthCaller view returns(string name, 
-                                                                    string contactNo, 
-                                                                    string role,
+    function getUser(address _userAddress) public  view  returns(string memory name, 
+                                                                    string memory contactNo, 
+                                                                    string memory role,
                                                                     bool isActive, 
-                                                                    string profileHash
+                                                                    string memory profileHash
                                                                 ){
 
         /*Getting value from struct*/
@@ -182,34 +183,46 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     }
     
     /*get batch basicDetails*/
-    function getBasicDetails(address _batchNo) public onlyAuthCaller view returns(string registrationNo,
-                             string farmerName,
-                             string farmAddress,
-                             string exporterName,
-                             string importerName) {
+    function getBasicDetails(address _batchNo) public view returns(string memory grower_company_name,
+                                                                                 string memory grower_contact_person_name,
+                                                                                 string memory groser_company_address,
+                                                                                 string memory farmer_name_address,
+                                                                                 string memory farmer_registration_no,
+                                                                                 string memory exporter_importer_name,
+                                                                                 uint256 total_weight_lbs) {
         
         basicDetails memory tmpData = batchBasicDetails[_batchNo];
         
-        return (tmpData.registrationNo,tmpData.farmerName,tmpData.farmAddress,tmpData.exporterName,tmpData.importerName);
+
+        return (tmpData.grower_company_name,
+                tmpData.grower_contact_person_name,
+                tmpData.groser_company_address,
+                tmpData.farmer_name_address,
+                tmpData.farmer_registration_no,
+                tmpData.exporter_importer_name,
+                tmpData.total_weight_lbs);
     }
     
     /*set batch basicDetails*/
-    function setBasicDetails(string _registrationNo,
-                             string _farmerName,
-                             string _farmAddress,
-                             string _exporterName,
-                             string _importerName
-                             
+    function setBasicDetails(string memory _grower_company_name,
+                             string memory _grower_contact_person_name,
+                             string memory _groser_company_address,
+                             string memory _farmer_name_address,
+                             string memory _farmer_registration_no,
+                             string memory _exporter_importer_name,
+                             uint256 _total_weight_lbs
                             ) public onlyAuthCaller returns(address) {
         
-        uint tmpData = uint(keccak256(msg.sender, now));
+        uint tmpData = uint(keccak256(abi.encodePacked(msg.sender, now)));
         address batchNo = address(tmpData);
         
-        basicDetailsData.registrationNo = _registrationNo;
-        basicDetailsData.farmerName = _farmerName;
-        basicDetailsData.farmAddress = _farmAddress;
-        basicDetailsData.exporterName = _exporterName;
-        basicDetailsData.importerName = _importerName;
+        basicDetailsData.grower_company_name = _grower_company_name;
+        basicDetailsData.grower_contact_person_name = _grower_contact_person_name;
+        basicDetailsData.groser_company_address = _groser_company_address;
+        basicDetailsData.farmer_name_address = _farmer_name_address;
+        basicDetailsData.farmer_registration_no = _farmer_registration_no;
+        basicDetailsData.exporter_importer_name = _exporter_importer_name;
+        basicDetailsData.total_weight_lbs = _total_weight_lbs;
         
         batchBasicDetails[batchNo] = basicDetailsData;
         
@@ -221,9 +234,9 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     
     /*set farm Inspector data*/
     function setFarmInspectorData(address batchNo,
-                                    string _coffeeFamily,
-                                    string _typeOfSeed,
-                                    string _fertilizerUsed) public onlyAuthCaller returns(bool){
+                                    string memory _coffeeFamily,
+                                    string memory _typeOfSeed,
+                                    string memory _fertilizerUsed) public onlyAuthCaller returns(bool){
         farmInspectorData.coffeeFamily = _coffeeFamily;
         farmInspectorData.typeOfSeed = _typeOfSeed;
         farmInspectorData.fertilizerUsed = _fertilizerUsed;
@@ -237,7 +250,7 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     
     
     /*get farm inspactor data*/
-    function getFarmInspectorData(address batchNo) public onlyAuthCaller view returns (string coffeeFamily,string typeOfSeed,string fertilizerUsed){
+    function getFarmInspectorData(address batchNo) public view returns (string memory coffeeFamily,string memory typeOfSeed,string memory fertilizerUsed){
         
         farmInspector memory tmpData = batchFarmInspector[batchNo];
         return (tmpData.coffeeFamily, tmpData.typeOfSeed, tmpData.fertilizerUsed);
@@ -246,9 +259,9 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
 
     /*set Harvester data*/
     function setHarvesterData(address batchNo,
-                              string _cropVariety,
-                              string _temperatureUsed,
-                              string _humidity) public onlyAuthCaller returns(bool){
+                              string memory _cropVariety,
+                              string memory _temperatureUsed,
+                              string memory _humidity) public onlyAuthCaller returns(bool){
         harvesterData.cropVariety = _cropVariety;
         harvesterData.temperatureUsed = _temperatureUsed;
         harvesterData.humidity = _humidity;
@@ -261,9 +274,9 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     }
     
     /*get farm Harvester data*/
-    function getHarvesterData(address batchNo) public onlyAuthCaller view returns(string cropVariety,
-                                                                                           string temperatureUsed,
-                                                                                           string humidity){
+    function getHarvesterData(address batchNo) public view returns(string memory cropVariety,
+                                                                                           string memory temperatureUsed,
+                                                                                           string memory humidity){
         
         harvester memory tmpData = batchHarvester[batchNo];
         return (tmpData.cropVariety, tmpData.temperatureUsed, tmpData.humidity);
@@ -272,9 +285,9 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     /*set Exporter data*/
     function setExporterData(address batchNo,
                               uint256 _quantity,    
-                              string _destinationAddress,
-                              string _shipName,
-                              string _shipNo,
+                              string memory _destinationAddress,
+                              string memory _shipName,
+                              string memory _shipNo,
                               uint256 _estimateDateTime,
                               uint256 _exporterId) public onlyAuthCaller returns(bool){
         
@@ -294,10 +307,10 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     }
     
     /*get Exporter data*/
-    function getExporterData(address batchNo) public onlyAuthCaller view returns(uint256 quantity,
-                                                                string destinationAddress,
-                                                                string shipName,
-                                                                string shipNo,
+    function getExporterData(address batchNo) public view returns(uint256 quantity,
+                                                                string memory destinationAddress,
+                                                                string memory shipName,
+                                                                string memory shipNo,
                                                                 uint256 departureDateTime,
                                                                 uint256 estimateDateTime,
                                                                 uint256 exporterId){
@@ -321,11 +334,11 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     /*set Importer data*/
     function setImporterData(address batchNo,
                               uint256 _quantity, 
-                              string _shipName,
-                              string _shipNo,
-                              string _transportInfo,
-                              string _warehouseName,
-                              string _warehouseAddress,
+                              string memory _shipName,
+                              string memory _shipNo,
+                              string memory _transportInfo,
+                              string memory _warehouseName,
+                              string memory _warehouseAddress,
                               uint256 _importerId) public onlyAuthCaller returns(bool){
         
         importerData.quantity = _quantity;
@@ -345,13 +358,13 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     }
     
     /*get Importer data*/
-    function getImporterData(address batchNo) public onlyAuthCaller view returns(uint256 quantity,
-                                                                                        string shipName,
-                                                                                        string shipNo,
+    function getImporterData(address batchNo) public view returns(uint256 quantity,
+                                                                                        string memory shipName,
+                                                                                        string memory shipNo,
                                                                                         uint256 arrivalDateTime,
-                                                                                        string transportInfo,
-                                                                                        string warehouseName,
-                                                                                        string warehouseAddress,
+                                                                                        string memory transportInfo,
+                                                                                        string memory warehouseName,
+                                                                                        string memory warehouseAddress,
                                                                                         uint256 importerId){
         
         importer memory tmpData = batchImporter[batchNo];
@@ -372,12 +385,12 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     /*set Proccessor data*/
     function setProcessorData(address batchNo,
                               uint256 _quantity, 
-                              string _temperature,
+                              string memory _temperature,
                               uint256 _rostingDuration,
-                              string _internalBatchNo,
+                              string memory _internalBatchNo,
                               uint256 _packageDateTime,
-                              string _processorName,
-                              string _processorAddress) public onlyAuthCaller returns(bool){
+                              string memory _processorName,
+                              string memory _processorAddress) public onlyAuthCaller returns(bool){
         
         
         processorData.quantity = _quantity;
@@ -397,14 +410,14 @@ contract SupplyChainStorage is SupplyChainStorageOwnable {
     
     
     /*get Processor data*/
-    function getProcessorData( address batchNo) public onlyAuthCaller view returns(
+    function getProcessorData( address batchNo) public view returns(
                                                                                         uint256 quantity,
-                                                                                        string temperature,
+                                                                                        string memory temperature,
                                                                                         uint256 rostingDuration,
-                                                                                        string internalBatchNo,
+                                                                                        string memory internalBatchNo,
                                                                                         uint256 packageDateTime,
-                                                                                        string processorName,
-                                                                                        string processorAddress){
+                                                                                        string memory processorName,
+                                                                                        string memory processorAddress){
 
         processor memory tmpData = batchProcessor[batchNo];
         
